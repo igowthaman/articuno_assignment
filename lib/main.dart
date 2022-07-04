@@ -1,81 +1,136 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter',
+      title: 'Assignment',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Articuno'),
+      home: const HomeScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+class StatefulColorfulTile extends StatefulWidget {
+  StatefulColorfulTile(
+      {Key? key, required this.myColorList, required this.condition})
+      : super(key: key);
 
-  final String title;
-
+  bool condition;
+  List<Color> myColorList;
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<StatefulColorfulTile> createState() => _StatefulColorfulTileState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  var color1 = Colors.green;
-  var color2 = Colors.yellow;
-  var state = 0;
-  void swap() {
-    if (state == 0) {
+class _StatefulColorfulTileState extends State<StatefulColorfulTile> {
+  late Color myColor;
+  @override
+  void initState() {
+    super.initState();
+    myColor = Color(
+      (math.Random().nextDouble() * 0xFFFFFF).toInt(),
+    ).withOpacity(
+      1.0,
+    );
+    widget.myColorList.add(myColor);
+  }
+
+  @override
+  void didUpdateWidget(covariant StatefulColorfulTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.condition) {
       setState(() {
-        color1 = Colors.yellow;
-        color2 = Colors.green;
-        state = 1;
+        widget.myColorList.insert(1, widget.myColorList.removeAt(0));
+        widget.condition = false;
       });
+      myColor = widget.myColorList[0];
     } else {
       setState(() {
-        color1 = Colors.green;
-        color2 = Colors.yellow;
-        state = 0;
+        widget.myColorList.insert(1, widget.myColorList.removeAt(0));
+        widget.condition = true;
       });
+      myColor = widget.myColorList[1];
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
+    return Container(
+      color: myColor,
+      child: const Padding(
+        padding: EdgeInsets.all(70.0),
       ),
-      body: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                color: color1,
-                width: 150,
-                height: 150,
-              ),
-              Container(
-                color: color2,
-                width: 150,
-                height: 150,
-              ),
-            ],
-          ),
-        ],
+    );
+  }
+}
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<Color> myColorList = [];
+  bool condition = true;
+  var containers;
+
+  @override
+  void initState() {
+    super.initState();
+    containers = [
+      Padding(
+        padding: const EdgeInsets.all(10),
+        child: StatefulColorfulTile(
+          myColorList: myColorList,
+          condition: condition,
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.all(10),
+        child: StatefulColorfulTile(
+          myColorList: myColorList,
+          condition: condition,
+        ),
+      )
+    ];
+  }
+
+  void swapColour() {
+    setState(() {
+      containers.insert(1, containers.removeAt(0));
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            Row(
+              children: containers,
+            )
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: swap,
-        child: const Icon(Icons.swap_vert_circle),
+        onPressed: () => swapColour(),
+        child: const Icon(Icons.change_circle_outlined),
       ),
     );
   }
